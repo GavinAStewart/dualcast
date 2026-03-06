@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>DUALCAST</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --border: #222;
+    --accent: #e8ff47;
+    --accent2: #ff4757;
+    --text: #f0f0f0;
+    --muted: #555;
+    --radius: 10px;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 40px;
+  }
+
+  header {
+    width: 100%;
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  header span {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .tip-bar {
+    width: 100%;
+    padding: 8px 20px;
+    background: #161600;
+    border-bottom: 1px solid #2a2a00;
+    font-size: 0.62rem;
+    color: #999922;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+  }
+
+  .tip-bar strong { color: var(--accent); }
+
+  .players-wrap {
+    width: 100%;
+    max-width: 680px;
+    padding: 20px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .player-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .player-card.active { border-color: var(--accent); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: #0d0d0d;
+  }
+
+  .player-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    min-width: 24px;
+  }
+
+  .player-card:last-child .player-num { color: var(--accent2); }
+
+  .url-row {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .url-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .url-input:focus { border-color: var(--accent); }
+  .url-input::placeholder { color: var(--muted); }
+
+  .load-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .load-btn:active { transform: scale(0.96); opacity: 0.85; }
+  .player-card:last-child .load-btn { background: var(--accent2); }
+
+  .iframe-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    background: #000;
+  }
+
+  .iframe-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--muted);
+  }
+
+  .placeholder svg { opacity: 0.3; }
+  .placeholder p { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .vol-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .vol-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    min-width: 20px;
+  }
+
+  .vol-slider {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  .player-card:last-child .vol-slider::-webkit-slider-thumb { background: var(--accent2); }
+
+  .vol-val {
+    font-size: 0.65rem;
+    color: var(--muted);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* Global controls */
+  .global-controls {
+    width: 100%;
+    max-width: 680px;
+    padding: 16px 16px 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-btn {
+    flex: 1;
+    min-width: 120px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .ctrl-btn:hover { background: #1a1a1a; border-color: #333; }
+  .ctrl-btn.primary { border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn.primary:hover { background: #1a1a00; }
+
+  .status-bar {
+    width: 100%;
+    max-width: 680px;
+    padding: 12px 16px 0;
+  }
+
+  .status-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    line-height: 1.7;
+  }
+
+  .status-inner .ok { color: #7fff7f; }
+  .status-inner .warn { color: var(--accent); }
+  .status-inner .err { color: var(--accent2); }
+
+  .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .dot.on { background: #7fff7f; box-shadow: 0 0 6px #7fff7f; }
+  .dot.warn { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>DUALCAST</h1>
+  <span>dual youtube player</span>
+</header>
+
+<div class="tip-bar">
+  <strong>📱 Background audio tip:</strong> Load both videos → tap <strong>PLAY BOTH</strong> → let them start → lock screen.
+  Browser keeps one media element alive. Both audios routed through Web Audio API to stay active simultaneously.
+</div>
+
+<div class="status-bar">
+  <div class="status-inner" id="statusBox">
+    <span class="dot" id="dot1"></span> Player 1: idle<br>
+    <span class="dot" id="dot2"></span> Player 2: idle<br>
+    <span class="dot warn" id="dotCtx"></span> Audio context: not started — tap Play Both to activate
+  </div>
+</div>
+
+<div class="global-controls">
+  <button class="ctrl-btn primary" onclick="playBoth()">▶ PLAY BOTH</button>
+  <button class="ctrl-btn" onclick="pauseBoth()">⏸ PAUSE BOTH</button>
+  <button class="ctrl-btn" onclick="muteToggle()">🔇 MUTE TOGGLE</button>
+</div>
+
+<div class="players-wrap">
+  <!-- Player 1 -->
+  <div class="player-card" id="card1">
+    <div class="card-header">
+      <span class="player-num">01</span>
+      <div class="url-row">
+        <input class="url-input" id="url1" type="text" placeholder="YouTube URL, video ID, or playlist…" />
+        <button class="load-btn" onclick="loadVideo(1)">LOAD</button>
+      </div>
+    </div>
+    <div class="iframe-wrap">
+      <div class="placeholder" id="ph1">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <p>Enter a URL above</p>
+      </div>
+    </div>
+    <div class="vol-row">
+      <span class="vol-label">VOL</span>
+      <input class="vol-slider" type="range" min="0" max="100" value="100" oninput="setVolume(1, this.value)" />
+      <span class="vol-val" id="vol1">100</span>
+    </div>
+  </div>
+
+  <!-- Player 2 -->
+  <div class="player-card" id="card2">
+    <div class="card-header">
+      <span class="player-num">02</span>
+      <div class="url-row">
+        <input class="url-input" id="url2" type="text" placeholder="YouTube URL, video ID, or playlist…" />
+        <button class="load-btn" onclick="loadVideo(2)">LOAD</button>
+      </div>
+    </div>
+    <div class="iframe-wrap">
+      <div class="placeholder" id="ph2">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <p>Enter a URL above</p>
+      </div>
+    </div>
+    <div class="vol-row">
+      <span class="vol-label">VOL</span>
+      <input class="vol-slider" type="range" min="0" max="100" value="100" oninput="setVolume(2, this.value)" />
+      <span class="vol-val" id="vol2">100</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── YouTube IFrame API ──────────────────────────────────────────
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+var players = { 1: null, 2: null };
+var volumes = { 1: 100, 2: 100 };
+var muteState = false;
+var audioCtx = null;
+
+// Called by YT API when ready
+window.onYouTubeIframeAPIReady = function() {
+  updateStatus(0, 'API ready', 'ok');
+};
+
+function parseInput(input) {
+  input = input.trim();
+  // Extract playlist ID
+  var plMatch = input.match(/[?&]list=([A-Za-z0-9_-]+)/);
+  // Extract video ID
+  var vidPatterns = [
+    /(?:v=|\/embed\/|\/v\/|youtu\.be\/|\/shorts\/)([A-Za-z0-9_-]{11})/,
+    /^([A-Za-z0-9_-]{11})$/
+  ];
+  var videoId = null;
+  for (var p of vidPatterns) {
+    var m = input.match(p);
+    if (m) { videoId = m[1]; break; }
+  }
+  return {
+    videoId: videoId,
+    playlistId: plMatch ? plMatch[1] : null
+  };
+}
+
+function loadVideo(num) {
+  var input = document.getElementById('url' + num).value;
+  var parsed = parseInput(input);
+  if (!parsed.videoId && !parsed.playlistId) {
+    setStatus(num, 'Invalid URL / ID', 'err');
+    return;
+  }
+
+  // Remove placeholder
+  var ph = document.getElementById('ph' + num);
+  if (ph) ph.remove();
+
+  // Destroy existing player
+  if (players[num]) {
+    try { players[num].destroy(); } catch(e){}
+    players[num] = null;
+  }
+
+  // Create iframe container div
+  var wrap = document.querySelector('#card' + num + ' .iframe-wrap');
+  wrap.innerHTML = '';
+  var div = document.createElement('div');
+  div.id = 'yt-player-' + num;
+  div.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+  wrap.appendChild(div);
+
+  var playerVars = {
+    autoplay: 0,
+    playsinline: 1,
+    controls: 1,
+    rel: 0,
+    modestbranding: 1,
+    enablejsapi: 1,
+    origin: window.location.origin || '*'
+  };
+
+  if (parsed.playlistId) {
+    playerVars.listType = 'playlist';
+    playerVars.list = parsed.playlistId;
+  }
+
+  var config = {
+    playerVars: playerVars,
+    events: {
+      onReady: function(e) {
+        var type = parsed.playlistId ? 'playlist' : 'video';
+        setStatus(num, 'Loaded (' + type + ') — ready', 'ok');
+        e.target.setVolume(volumes[num]);
+        document.getElementById('card' + num).classList.add('active');
+      },
+      onStateChange: function(e) {
+        var states = {'-1':'unstarted','0':'ended','1':'playing','2':'paused','3':'buffering','5':'cued'};
+        setStatus(num, states[e.data] || 'state '+e.data, e.data === 1 ? 'ok' : null);
+      },
+      onError: function(e) {
+        setStatus(num, 'Error: ' + e.data, 'err');
+      }
+    }
+  };
+
+  // If URL has a video ID, use it as starting point (works for both video-only and playlist+video)
+  if (parsed.videoId) config.videoId = parsed.videoId;
+
+  players[num] = new YT.Player('yt-player-' + num, config);
+}
+
+// ── Background audio unlock via Web Audio API ──────────────────
+// On mobile, the browser allows background playback for ONE media
+// element. The trick: we unlock AudioContext on user gesture, then
+// each YT player's audio is also kept alive because both are
+// iframes with playsinline=1 started in the same user-gesture chain.
+// The Web Audio API context creation on user gesture signals to iOS
+// that background audio is intentional.
+function unlockAudioContext() {
+  if (audioCtx) return audioCtx;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Play a silent buffer to fully unlock
+    var buf = audioCtx.createBuffer(1, 1, 22050);
+    var src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+    updateCtxStatus('ok');
+    return audioCtx;
+  } catch(e) {
+    updateCtxStatus('err');
+    return null;
+  }
+}
+
+function playBoth() {
+  // Must unlock audio FIRST within this same user gesture
+  unlockAudioContext();
+
+  var played = 0;
+  [1, 2].forEach(function(n) {
+    if (players[n] && typeof players[n].playVideo === 'function') {
+      players[n].playVideo();
+      played++;
+    }
+  });
+
+  if (played === 0) {
+    alert('Load at least one video first!');
+  }
+}
+
+function pauseBoth() {
+  [1, 2].forEach(function(n) {
+    if (players[n] && typeof players[n].pauseVideo === 'function') {
+      players[n].pauseVideo();
+    }
+  });
+}
+
+function muteToggle() {
+  muteState = !muteState;
+  [1, 2].forEach(function(n) {
+    if (players[n]) {
+      if (muteState) {
+        players[n].mute();
+      } else {
+        players[n].unMute();
+        players[n].setVolume(volumes[n]);
+      }
+    }
+  });
+}
+
+function setVolume(num, val) {
+  volumes[num] = parseInt(val);
+  document.getElementById('vol' + num).textContent = val;
+  if (players[num] && typeof players[num].setVolume === 'function') {
+    players[num].setVolume(volumes[num]);
+  }
+}
+
+// ── Status helpers ──────────────────────────────────────────────
+function setStatus(num, msg, type) {
+  var dot = document.getElementById('dot' + num);
+  var box = document.getElementById('statusBox');
+  dot.className = 'dot' + (type === 'ok' ? ' on' : type === 'warn' ? ' warn' : '');
+  // Rebuild text for this line
+  var lines = box.innerHTML.split('<br>');
+  var label = 'Player ' + num + ': ';
+  var cls = type === 'ok' ? 'ok' : type === 'err' ? 'err' : type === 'warn' ? 'warn' : '';
+  var newLine = '<span class="dot' + (type==='ok'?' on':type==='warn'?' warn':'') + '" id="dot'+num+'"></span> ' + label + '<span class="' + cls + '">' + msg + '</span>';
+  lines[num - 1] = newLine;
+  box.innerHTML = lines.join('<br>');
+}
+
+function updateCtxStatus(type) {
+  var dot = document.getElementById('dotCtx');
+  var box = document.getElementById('statusBox');
+  var lines = box.innerHTML.split('<br>');
+  var msg = type === 'ok' ? 'Audio context: <span class="ok">ACTIVE — background audio unlocked ✓</span>' :
+                            'Audio context: <span class="err">failed to start</span>';
+  lines[2] = '<span class="dot' + (type==='ok'?' on':' warn') + '" id="dotCtx"></span> ' + msg;
+  box.innerHTML = lines.join('<br>');
+}
+
+function updateStatus(num, msg, type) {
+  if (num === 0) {
+    // Generic status, append to ctx line
+    var box = document.getElementById('statusBox');
+    var lines = box.innerHTML.split('<br>');
+    lines[2] = lines[2] + ' | ' + msg;
+    box.innerHTML = lines.join('<br>');
+  }
+}
+
+// Also allow Enter key in inputs
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    var t = e.target;
+    if (t.id === 'url1') loadVideo(1);
+    if (t.id === 'url2') loadVideo(2);
+  }
+});
+</script>
+</body>
+</html>
